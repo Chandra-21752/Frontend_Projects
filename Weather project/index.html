@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Weather App</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f1f3f6;
+    color: #333;
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+  }
+
+  h1 {
+    font-size: 2.5rem;
+    color: #4e73df;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  h2 {
+    color: #444;
+    font-size: 1.8rem;
+    margin-top: 20px;
+    text-align: center;
+  }
+
+  form {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 10px 20px;
+  }
+
+  input[type='text'] {
+    padding: 12px;
+    font-size: 1rem;
+    width: 250px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-right: 15px;
+    transition: border-color 0.3s ease;
+  }
+
+  input[type='text']:focus {
+    border-color: #4e73df;
+    outline: none;
+  }
+
+  button {
+    padding: 12px 20px;
+    font-size: 1.1rem;
+    background-color: #4e73df;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  button:hover {
+    background-color: #3b5bcb;
+  }
+
+
+  #weatherDisplay {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    width: 300px;
+    text-align: center;
+    margin-top: 20px;
+  }
+
+  #weatherDisplay h3 {
+    font-size: 1.8rem;
+    color: #4e73df;
+    margin-bottom: 10px;
+  }
+
+  #weatherDisplay p {
+    font-size: 1.1rem;
+    margin: 5px 0;
+  }
+
+  #errorMessage {
+    color: #e74a3b;
+    font-size: 1.2rem;
+    text-align: center;
+    margin-top: 15px;
+  }
+
+  #favoritesList {
+    list-style: none;
+    padding: 0;
+    margin-top: 30px;
+    width: 80%;
+    max-width: 600px;
+  }
+
+  li {
+    background-color: #ffffff;
+    margin: 10px 0;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+  }
+
+  li span {
+    font-size: 1.1rem;
+    color: #555;
+  }
+
+  button {
+    padding: 8px 15px;
+    font-size: 1rem;
+    border-radius: 5px;
+    margin-left: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  button:nth-of-type(1) {
+    background-color: #28a745;
+    color: white;
+  }
+
+  button:nth-of-type(1):hover {
+    background-color: #218838;
+  }
+
+  button:nth-of-type(2) {
+    background-color: #dc3545;
+    color: white;
+  }
+
+  button:nth-of-type(2):hover {
+    background-color: #c82333;
+  }
+
+  button:nth-of-type(3) {
+    background-color: #ffc107;
+    color: white;
+  }
+
+  button:nth-of-type(3):hover {
+    background-color: #e0a800;
+  }
+
+  li button:hover {
+    opacity: 0.9;
+  }
+
+  li button:focus {
+    outline: none;
+  }
+  
+
+  @media (max-width: 768px) {
+    form {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    input[type='text'] {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+
+    button {
+      width: 100%;
+    }
+
+    #weatherDisplay {
+      width: 90%;
+    }
+  }
+
+    </style>
+  </head>
+  <body>
+    <h1>Weather App</h1>
+    <form id="searchForm">
+      <input
+        type="text"
+        id="cityInput"
+        placeholder="Enter city name"
+        required
+      />
+      <button type="submit">Search</button>
+    </form>
+    <div id="weatherDisplay"></div>
+    <h2>Favorite Cities</h2>
+    <ul id="favoritesList"></ul>
+
+   <script>
+    const API_KEY = 'bd5e378503939ddaee76f12ad7a97608'; 
+    const BASE_URL = 'https://api.openweathermap.org/data/2.5/weather';
+
+
+    document.getElementById('searchForm').addEventListener('submit', event => {
+        event.preventDefault();
+        const city = document.getElementById('cityInput').value.trim();
+        fetchWeather(city).then(data => {
+        if (data) {
+            displayWeather(data);
+            addToFavorites(city)
+        }
+        });
+    });
+
+    function fetchWeather(city) {
+        const url = `${BASE_URL}?q=${city}&appid=${API_KEY}&units=metric`;
+        return fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            console.log(data)
+            return data; })
+        .catch(error => {
+            displayError('City not found. Please enter a valid city name.');
+            console.error('Error fetching weather data:', error);
+        });
+    }
+
+    function displayWeather(data) {
+        const weatherDisplay = document.getElementById('weatherDisplay');
+        const { name, main, weather ,wind} = data;
+
+        weatherDisplay.innerHTML = `
+        <h3>Weather in ${name}</h3>
+        <p>Temperature: ${main.temp}°C</p>
+        <p>Pressure: ${main.pressure}</p>
+        <p>Condition: ${weather[0].description}</p>
+        <p>Wind Speed: ${wind.speed}</p>
+        `;
+    }
+ 
+    function displayError(message) {
+    const weatherDisplay = document.getElementById('weatherDisplay');
+    weatherDisplay.innerHTML = `<p style="color: blue;">${message}</p>`;
+    }
+
+    function clearError() {
+    const weatherDisplay = document.getElementById('weatherDisplay');
+    weatherDisplay.innerHTML = '';
+    }
+
+    function addToFavorites(city) {
+        let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+
+        if (!favorites.includes(city)) {
+            favorites.push(city);
+            localStorage.setItem('favorites', JSON.stringify(favorites));
+            displayFavorites();
+        } else {
+            displayError(`${city} is already in your favorites.`);
+        }
+    }
+
+    function displayFavorites() {
+        const favoritesList = document.getElementById('favoritesList');
+        const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+        favoritesList.innerHTML = '';  
+        favorites.forEach(city => {
+            const li = document.createElement('li');
+            const cityText = document.createElement('span');
+            cityText.textContent = city;
+            const editBtn = document.createElement('button');
+            editBtn.textContent = 'Edit';
+            editBtn.addEventListener('click', () => editFavorite(city));
+            const deleteBtn = document.createElement('button');
+            deleteBtn.textContent = 'Remove';
+            deleteBtn.addEventListener('click', () => removeFromFavorites(city));
+            const showWeatherBtn = document.createElement('button');
+            showWeatherBtn.textContent = 'Show Weather';
+            showWeatherBtn.addEventListener('click', () =>
+            fetchWeather(city).then(displayWeather)
+            );
+            li.appendChild(cityText);
+            li.appendChild(editBtn);
+            li.appendChild(deleteBtn);
+            li.appendChild(showWeatherBtn);
+
+            favoritesList.appendChild(li);
+        });
+    }
+
+    function editFavorite(oldCity) {
+        const newCity = prompt('Enter the new city name:', oldCity).trim();
+
+        if (newCity && newCity !== oldCity) {
+        let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+
+        if (favorites.includes(newCity)) {
+            displayError(`${newCity} is already in your favorites.`);
+            return;
+        }
+
+        const index = favorites.indexOf(oldCity);
+        if (index !== -1) {
+            favorites[index] = newCity;
+            localStorage.setItem('favorites', JSON.stringify(favorites));
+
+            displayFavorites();
+        }
+        }
+    }
+
+    function removeFromFavorites(city) {
+        let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+        favorites = favorites.filter(favCity => favCity !== city);
+
+        localStorage.setItem('favorites', JSON.stringify(favorites));
+        displayFavorites();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+       displayFavorites();
+    });
+
+
+   </script>
+  </body>
+</html>
